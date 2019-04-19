@@ -138,9 +138,13 @@ for i in range(0,len(Description)):
 		if word.lower() in UniqueWords:
 			SimplifiedDescription[i] = SimplifiedDescription[i] + " " + str(word)
 
-#print(SimplifiedDescription)
 
 
+#Modify the Variety, Province, and Taster Entries to eliminate any ending punction
+for i in range(0,len(V)):
+	V[i] = V[i][0:len(V[i])-1]
+	T[i] = T[i][0:len(T[i])-1]
+	P[i] = P[i][0:len(P[i])-1]
 
 #================================================================================#
 #================================================================================#
