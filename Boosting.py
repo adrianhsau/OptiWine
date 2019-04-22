@@ -1,15 +1,19 @@
+import hyperopt
+import lightgbm as lgb
+from hyperopt import STATUS_OK
 import pandas as pd
 import numpy as np
-from os import path
-import nltk
-from nltk.corpus import stopwords
-import operator
 import time
 from pandas import DataFrame
-import sys
-import codecs
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import roc_auc_score
+from sklearn.model_selection import KFold
+from hyperopt import hp
+from hyperopt import tpe
+from hyperopt import Trials
+from hyperopt import fmin
+
 
 
 Encoding = 'utf-8'
@@ -107,6 +111,7 @@ FeaturesDescriptions = np.array(SUPERMATrick)
 
 
 
+Nfolds = 10
 print("ML BEGIN")
 start = time.time()
 train_features, test_features, train_labels, test_labels = train_test_split(FeaturesDescriptions, labels, test_size = 0.25, random_state = 42)
@@ -116,45 +121,22 @@ print('Training Labels Shape:', train_labels.shape)
 print('Testing Features Shape:', test_features.shape)
 print('Testing Labels Shape:', test_labels.shape)
 
-
-# Instantiate model with 1000 decision trees
-rf = RandomForestClassifier(bootstrap=True, class_weight=None, criterion='gini',
-            max_depth=None, max_features='auto', max_leaf_nodes=None,
-            min_impurity_decrease=1e-07, min_samples_leaf=1,
-            min_samples_split=2, min_weight_fraction_leaf=0.0,
-            n_estimators=10, n_jobs=2, oob_score=False, random_state=42,
-            verbose=0, warm_start=False)
-# Train the model on training data
-rf.fit(train_features, train_labels);
-
-# Use the forest's predict method on the test data
-predictions = rf.predict(test_features)
+train_set = lgb.Dataset(train_features, train_labels)
+model = lgb.LGBMClassifier()
 
 
-# confusion =  np.zeros((len(UniqueVarieties),len(UniqueVarieties)))
-
-# for i in range(0,len(predictions)):
-# 	if predictions[i] == test_labels[i]:
-# 		confusion[predictions] += 1 
-# 	else:
-# 		confusion[predictions] += 1
-		
-# error = np.zeros(len(UniqueVarieties))
-# for i in range(0,len(confusion)):
-# 	error[i] = confusion[i,i]/sum(confusion[:,i])
+start = time.time()
+model.fit(train_features, train_labels)
+train_time = time.time() - start
 
 
-NumberCorrect = 0
-for i in range(0,len(predictions)):
-	if predictions[i] == test_labels[i]:
-		NumberCorrect += 1
+print(train_time)
 
-ErrorRate = 1 - NumberCorrect / len(predictions)
-#WE PREDICT LABELS!!!!!!!
+predictions = model.predict_proba(test_features)[:, 1]
+auc = roc_auc_score(test_labels, predictions)
 
-end = time.time()
-TotalTime = end - start
-print(ErrorRate)
 
-print('The baseline training time is {:.4f} seconds'.format(TotalTime))
+
+
+
 

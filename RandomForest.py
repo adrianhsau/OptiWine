@@ -18,20 +18,15 @@ from sklearn.ensemble import RandomForestRegressor
 #================================================================================#
 #================================================================================#
 
-DataNoDes = pd.read_csv('wine.txt', sep = ",",encoding='utf-8')
-DataFormatted = pd.read_csv('DescriptionData.csv', sep = ",",encoding='utf-8')
+BigBoiMatrix = pd.read_csv('ML.csv', sep = ",",encoding='utf-8')
+WineVector = pd.read_csv('FullWineVectors.csv', sep = ",",encoding='utf-8')
 
-Descriptions = DataFormatted['Description']
-Points = DataNoDes['points']
-Price = DataNoDes['price']
-Province = DataFormatted['Province']
-TasterName = DataFormatted['TasterName']
-Variety = DataFormatted['Variety']
-
-
+print(BigBoiMatrix)
+time.sleep(5)
+print(DataFormatted)
 # Labels are the values we want to predict
 labels = np.array(Variety)
-print(labels)
+
 
 
 # Remove the labels from the features

@@ -8,8 +8,10 @@ import time
 from pandas import DataFrame
 import sys
 import codecs
+import timeit
+import re
 
-
+start = time.time()
 sys.stdout = codecs.getwriter( "utf-8" )( sys.stdout.detach() )
 
 
@@ -21,9 +23,8 @@ sys.stdout = codecs.getwriter( "utf-8" )( sys.stdout.detach() )
 
 Encoding = 'utf-8'
 
-
-print("Rosé")
-Data = pd.read_csv('wineTEST.txt', sep = ",",encoding=Encoding)
+start = time.time()
+Data = pd.read_csv('wineTest.txt', sep = ",",encoding=Encoding)
 badDescription = Data['description'] #It is a bad description because each discription
 #many words that have no true impact on the variety of the wine
 Points = Data['points']
@@ -73,7 +74,7 @@ for i in range(0,len(badDescription)):
 NLPFillerList = stopwords.words('english')
 
 #This list has been created by us and encapsulates words not a part of the inital NLP list
-listOfUselessWords = ["In","now","It","A","include","and","The","isn't","This","is","a","that","while","are","out","with","It's","Some","was","all","to","and,"]
+listOfUselessWords = ["seems","soon","drink","aromas","many","somewhat","many","shows","along","becoming","price","come","wine","tastes","flavors","that's","In","now","It","A","include","and","The","isn't","This","is","a","that","while","are","out","with","It's","Some","was","all","to","and,"]
 
 ExcessiveWords = NLPFillerList + listOfUselessWords
 
@@ -89,7 +90,8 @@ NonASCII = ["xe2","xc3","xa9","x80","x94","xad","xa4"]
 #The purpose of this for-loop is to fill our dictionary with appropriate words and keep track of the number
 #of times they appear
 for i in range(0,len(Description)):
-	words = Description[i].split()
+	D = re.sub('[^a-zA-Z]',' ',Description[i])
+	words = D.split()
 	for word in words:
 		word = word.lower()
 
@@ -110,8 +112,26 @@ for i in range(0,len(Description)):
 				UniqueWords[word] = 1
 
 
+#print(UniqueWords)
+
+
 #Remove words with nonASCII Characters
 del UniqueWords["null"]
+
+MoreUselesswords = [""]*len(UniqueWords)
+index = 0
+#Determine the number of words that are only used as descriptors once
+for key,value in UniqueWords.items():
+	if UniqueWords[key] == 1:
+		MoreUselesswords[index] = key
+		index += 1
+
+
+MoreUselesswords = list(filter(None, MoreUselesswords))
+
+print(len(MoreUselesswords))
+
+
 
 
 #================================================================================#
@@ -127,16 +147,15 @@ SimplifiedDescription = [""]*len(badDescription)
 
 #Determine number of sentences per description and create list only with words that are actually usefull
 for i in range(0,len(Description)):
-	words = Description[i].split()
-
+	D = re.sub('[^a-zA-Z]',' ',Description[i])
+	words = D.split()
 	for word in words:
-		#Clean up punctuation at the end of the word
-		if word[len(word)-1] in punction:
-			word = word[0:len(word)-1]
-
 		#Recreate the descriptions only with the valuable terms
-		if word.lower() in UniqueWords:
+		if word.lower() in UniqueWords and word.lower() not in MoreUselesswords:
 			SimplifiedDescription[i] = SimplifiedDescription[i] + " " + str(word)
+
+
+end = time.time()
 
 
 
@@ -149,14 +168,17 @@ for i in range(0,len(V)):
 #================================================================================#
 #================================================================================#
 #==================== Export Data for Machine Learning ==========================#
-#== In order to properly use the random forest, we must recreate the inital =====#
-#=== descriptions of the wine, but now only with the words we care about ========#
 #================================================================================#
 #================================================================================#
-
-
+#================================================================================#
+#================================================================================#
 
 SetUpDictionary = {'Description':SimplifiedDescription,'Variety':V,'Province':P,'TasterName':T}
 df = DataFrame(SetUpDictionary)
 
 df.to_csv("FormattedData.csv",encoding = Encoding,index=False)
+
+end = time.time()
+TotalTime = end - start
+print('The baseline training time is {:.4f} seconds'.format(TotalTime))
+

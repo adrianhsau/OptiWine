@@ -32,27 +32,31 @@ Descriptions = DataDes['Description']
 #================================================================================#
 
 
-#freq = nltk.FreqDist(DescriptionCloud)
-#freq.plot(20, cumulative=False)
 
-# plt.figure(figsize=(15,10))
-# freq(ascending=False).plot.bar()
+wordcloudText = [""].append(descrip for descrip in Descriptions)
+print(wordcloudText)
+freq = nltk.FreqDist(wordcloudText)
+freq.plot(20, cumulative=False)
+
+plt.figure(figsize=(15,10))
+freq(ascending=False).plot.bar()
 # plt.xticks(rotation=50)
 # plt.xlabel("Country of Origin")
 # plt.ylabel("Number of Wines")
-# plt.show()
+plt.show()
 
-wordcloudText = " ".join(descrip for descrip in Descriptions)
+
+
 
 # Create stopword list:
-stopwords = set(STOPWORDS)
-stopwords.update(["drink", "now", "wine", "flavor", "flavors"])
+#stopwords = set(STOPWORDS)
+#stopwords.update(["drink", "now", "wine", "flavor", "flavors"])
 
 # Generate a word cloud image
-wordcloud = WordCloud(stopwords=stopwords, background_color="white").generate(wordcloudText)
+# wordcloud = WordCloud(background_color="white").generate(wordcloudText)
 
 
-# Display the generated image:
-plt.imshow(wordcloud, interpolation='bilinear')
-plt.axis("off")
-plt.show()
+# # Display the generated image:
+# plt.imshow(wordcloud, interpolation='bilinear')
+# plt.axis("off")
+# plt.show()
