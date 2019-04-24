@@ -19,7 +19,9 @@ from sklearn.metrics import accuracy_score
 import shap
 import matplotlib.pyplot as plt
 import warnings
+import ast
 warnings.filterwarnings('ignore')
+#warnings.filterwarnings('Warnings')
 
 Encoding = 'utf-8'
 Data = pd.read_csv('FormattedData.csv', sep = ",",encoding=Encoding).sort_values('Variety')
@@ -111,8 +113,6 @@ labels = np.array(FullWineVectorForEachDescription[0:len(FullWineVectorForEachDe
 FeaturesDescriptions = np.array(FeaturesMatrix)
 
 
-
-
 #================================================================================#
 #================================================================================#
 #=============================== Machine Learning ===============================#
@@ -120,16 +120,15 @@ FeaturesDescriptions = np.array(FeaturesMatrix)
 #================================================================================#
 
 print("ML BEGIN")
-start = time.time()
+
+#Split the data into testing and training sets
 train_features, test_features, train_labels, test_labels = train_test_split(FeaturesDescriptions, labels, test_size = 0.25, random_state = 42)
+
 
 print('Training Features Shape:', train_features.shape)
 print('Training Labels Shape:', train_labels.shape)
 print('Testing Features Shape:', test_features.shape)
 print('Testing Labels Shape:', test_labels.shape)
-
-lgb_train = lgb.Dataset(train_features, label=train_labels,categorical_feature= "auto")
-lgb_test = lgb.Dataset(test_features, test_labels,reference =lgb_train,categorical_feature= "auto")
 
 print("Read in CSV")
 results = pd.read_csv('gbm_trials2.csv')
@@ -145,69 +144,35 @@ ast.literal_eval(results.loc[0, 'params'])
 best_bayes_estimators = int(results.loc[0, 'estimators'])
 best_bayes_params = ast.literal_eval(results.loc[0, 'params']).copy()
 
+#print(best_bayes_params)
 
-# lgbm_params =  {
-#     'task': 'train',
-#     'boosting_type': 'gbdt',
-#     'objective': 'multiclass',
-#     'num_class': len(UniqueVarieties),
-#     'metric': ['multi_error'],
-#     "learning_rate": 0.05,
-#      "num_leaves": 60,
-#      "max_depth": 9,
-#      "feature_fraction": 0.45,
-#      "bagging_fraction": 0.3,
-#      "reg_alpha": 0.15,
-#      "reg_lambda": 0.15,
-# #      "min_split_gain": 0,
-#       "min_child_weight": 0,
-#                 }
+del best_bayes_params['metric']
+
+print("Creating Model")
+# Re-create the best model and train on the training data
+best_bayes_model = lgb.LGBMModel(n_estimators=best_bayes_estimators, n_jobs = -1, metric = 'multi_error',
+                                    random_state = 50, **best_bayes_params)
+
+print("Fitting Model")
+best_bayes_model.fit(train_features, train_labels)
 
 
-
-#================================================================================#
-#================================================================================#
-#=============================== Model Training =================================#
-#== We will train our model using the TPE (Tree-Structured Parzen Estimator) === #
-#====== algorithm ===================#
-#================================================================================#
-#================================================================================#
-
-print("Training")
-print(" ")
-
-booster = lgb.train(best_bayes_params,lgb_train,num_boost_round=500,valid_sets=[lgb_train,lgb_test],early_stopping_rounds=10,feature_name=[str(key) for key in UniqueWords])
-end = time.time()
-TotalTime = end - start
-print('The baseline training time is {:.4f} seconds'.format(TotalTime))
-print(" ")
+print("Predicting Model")
+# Evaluate on the testing data 
+preds = best_bayes_model.predict(test_features)
 
 
+correct = 0
+#Calculate the number of times the model correctly predicted the test labels given the test features
+for i in range(0,preds.shape[0]):
+    maxProbability = np.max(preds[i,:])
+    for j in range(0,len(preds[i,:])):
+        if preds[i,j] == maxProbability:
+            WinePredictions = j
+            break
+    if WinePredictions == test_labels[i]:
+        correct += 1
 
-#================================================================================#
-#================================================================================#
-#=============================== Model Prediction ===============================#
-#== We can now use the trained model to predict the wine varieties (test_labels) #
-#=================== based on our descriptors (test_features) ===================#
-#================================================================================#
-#================================================================================#
+TotalError = 1 - correct/len(test_labels)
 
-print("Predicting")
-print(" ")
-Predictions=booster.predict(test_features, num_iteration=booster.best_iteration)
-print(Predictions)
-print(" ")
-
-
-print("Plotting")
-
-
-
-print('Plotting feature importances...')
-ax = lgb.plot_importance(booster, max_num_features=20)
-plt.show()
-
-
-# shap_values = shap.TreeExplainer(booster).shap_values(test_features)
-# shap.summary_plot(shap_values, test_features)
-
+print('The best model from Bayes optimization scores {:.5f} error on the test set.'.format(TotalError))

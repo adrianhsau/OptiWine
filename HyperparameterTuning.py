@@ -19,7 +19,9 @@ from sklearn.metrics import accuracy_score
 import shap
 import matplotlib.pyplot as plt
 import warnings
+import ast
 warnings.filterwarnings('ignore')
+#warnings.filterwarnings('Warnings')
 
 Encoding = 'utf-8'
 Data = pd.read_csv('FormattedData.csv', sep = ",",encoding=Encoding).sort_values('Variety')
@@ -119,95 +121,104 @@ FeaturesDescriptions = np.array(FeaturesMatrix)
 #================================================================================#
 #================================================================================#
 
+
 print("ML BEGIN")
-start = time.time()
+print(" ")
+
 train_features, test_features, train_labels, test_labels = train_test_split(FeaturesDescriptions, labels, test_size = 0.25, random_state = 42)
+
 
 print('Training Features Shape:', train_features.shape)
 print('Training Labels Shape:', train_labels.shape)
 print('Testing Features Shape:', test_features.shape)
 print('Testing Labels Shape:', test_labels.shape)
-
-lgb_train = lgb.Dataset(train_features, label=train_labels,categorical_feature= "auto")
-lgb_test = lgb.Dataset(test_features, test_labels,reference =lgb_train,categorical_feature= "auto")
-
-print("Read in CSV")
-results = pd.read_csv('gbm_trials2.csv')
-
-# Sort with best scores on top and reset index for slicing
-results.sort_values('loss', ascending = True, inplace = True)
-results.reset_index(inplace = True, drop = True)
-
-# Convert from a string to a dictionary
-ast.literal_eval(results.loc[0, 'params'])
-
-# Extract the ideal number of estimators and hyperparameters
-best_bayes_estimators = int(results.loc[0, 'estimators'])
-best_bayes_params = ast.literal_eval(results.loc[0, 'params']).copy()
-
-
-# lgbm_params =  {
-#     'task': 'train',
-#     'boosting_type': 'gbdt',
-#     'objective': 'multiclass',
-#     'num_class': len(UniqueVarieties),
-#     'metric': ['multi_error'],
-#     "learning_rate": 0.05,
-#      "num_leaves": 60,
-#      "max_depth": 9,
-#      "feature_fraction": 0.45,
-#      "bagging_fraction": 0.3,
-#      "reg_alpha": 0.15,
-#      "reg_lambda": 0.15,
-# #      "min_split_gain": 0,
-#       "min_child_weight": 0,
-#                 }
-
-
-
-#================================================================================#
-#================================================================================#
-#=============================== Model Training =================================#
-#== We will train our model using the TPE (Tree-Structured Parzen Estimator) === #
-#====== algorithm ===================#
-#================================================================================#
-#================================================================================#
-
-print("Training")
 print(" ")
 
-booster = lgb.train(best_bayes_params,lgb_train,num_boost_round=500,valid_sets=[lgb_train,lgb_test],early_stopping_rounds=10,feature_name=[str(key) for key in UniqueWords])
-end = time.time()
-TotalTime = end - start
-print('The baseline training time is {:.4f} seconds'.format(TotalTime))
-print(" ")
+n_folds = 2
+
+# Create the dataset
+train_set = lgb.Dataset(train_features, train_labels)
 
 
+def objective(params, n_folds = n_folds):
+    """Objective function for Gradient Boosting Machine Hyperparameter Optimization"""
+    out_file = 'gbm_trials.csv'
 
-#================================================================================#
-#================================================================================#
-#=============================== Model Prediction ===============================#
-#== We can now use the trained model to predict the wine varieties (test_labels) #
-#=================== based on our descriptors (test_features) ===================#
-#================================================================================#
-#================================================================================#
+    # Keep track of evals
+    global iteration
+    
+    iteration += 1
+    
+    
+    start = time.time()
+    
+    # Perform n_folds cross validation
+    cv_results = lgb.cv(params, train_set, num_boost_round = 250, nfold = n_folds, 
+                        early_stopping_rounds = 10, metrics = 'multi_error', seed = 50)
+    
+    run_time = time.time() - start
+    
+    # Extract the best score
+    bestScore = np.min(cv_results['multi_error-mean'])
+    
+    # Loss must be minimized
+    loss = bestScore
+    
+    # Boosting rounds that returned the highest cv score
+    n_estimators = int(np.argmin(cv_results['multi_error-mean']) + 1)
 
-print("Predicting")
-print(" ")
-Predictions=booster.predict(test_features, num_iteration=booster.best_iteration)
-print(Predictions)
-print(" ")
+    # Write to the csv file ('a' means append)
+    of_connection = open(out_file, 'a')
+    writer = csv.writer(of_connection)
+    writer.writerow([loss, params, iteration, n_estimators, run_time])
+    
+    # Dictionary with information for evaluation
+    return {'loss': loss, 'params': params, 'iteration': iteration,
+            'estimators': n_estimators, 
+            'train_time': run_time, 'status': STATUS_OK}
 
 
-print("Plotting")
+space =  {
+    'boosting_type': 'gbdt',
+    'objective': 'multiclass',
+    'num_class': len(UniqueVarieties),
+    'metric': ['multi_error'],
+    "max_depth": hp.choice('max_depth',np.arange(5,20,dtype=int)),
+    "feature_fraction": hp.choice('feature_fraction',np.arange(0.1,0.7,dtype=float)),
+    "bagging_fraction": hp.choice('bagging_fraction',np.arange(0.1,0.7,dtype=float)),
+    "reg_alpha": hp.choice('reg_alpha',np.arange(0.0,0.7,dtype=float)),
+    "reg_lambda": hp.choice('reg_lambda',np.arange(0.0,0.7,dtype=float)),
+    "min_child_weight": 0,
+    'num_leaves': hp.choice('num_leaves',np.arange(1,150,dtype=int)),
+    'learning_rate': hp.loguniform('learning_rate', np.log(0.01), np.log(0.2)),
+    'subsample_for_bin': hp.choice('subsample_for_bin',np.arange(20000,300000,dtype=int)),
+    'min_child_samples': hp.choice('min_child_samples', np.arange(20,500,dtype=int)),
+    'colsample_bytree': hp.uniform('colsample_by_tree', 0.6, 1.0)
+                 }
+
+# File to save first results
+out_file = 'gbm_trials.csv'
+of_connection = open(out_file, 'w')
+writer = csv.writer(of_connection)
+
+# Write the headers to the file
+writer.writerow(['loss', 'params', 'iteration', 'estimators', 'train_time'])
+of_connection.close()
+
+# Algorithm
+tpe_algorithm = tpe.suggest
+
+# Trials object to track progress
+bayes_trials = Trials()
+
+global  iteration
+iteration = 0
 
 
+maxEvals = 10
 
-print('Plotting feature importances...')
-ax = lgb.plot_importance(booster, max_num_features=20)
-plt.show()
+# Optimize
+best = fmin(fn = objective, space = space, algo = tpe.suggest, 
+            max_evals = maxEvals, trials = bayes_trials,rstate = np.random.RandomState(50))
 
-
-# shap_values = shap.TreeExplainer(booster).shap_values(test_features)
-# shap.summary_plot(shap_values, test_features)
 
