@@ -16,6 +16,7 @@ from hyperopt import fmin
 import csv
 from hyperopt.pyll.stochastic import sample
 from sklearn.metrics import accuracy_score
+import ast
 import shap
 import matplotlib.pyplot as plt
 import warnings
@@ -131,7 +132,7 @@ print('Testing Labels Shape:', test_labels.shape)
 lgb_train = lgb.Dataset(train_features, label=train_labels,categorical_feature= "auto")
 lgb_test = lgb.Dataset(test_features, test_labels,reference =lgb_train,categorical_feature= "auto")
 
-print("Read in CSV")
+print("Read in hyperparameters from hypertuning ")
 results = pd.read_csv('gbm_trials2.csv')
 
 # Sort with best scores on top and reset index for slicing
@@ -168,15 +169,15 @@ best_bayes_params = ast.literal_eval(results.loc[0, 'params']).copy()
 #================================================================================#
 #================================================================================#
 #=============================== Model Training =================================#
-#== We will train our model using the TPE (Tree-Structured Parzen Estimator) === #
-#====== algorithm ===================#
-#================================================================================#
+#== We will train our model using the TPE (Tree-Structured Parzen Estimator) ====#
+#====== algorithm. The parameters used in the model were found from the  ========#
+#======================== HyperparameterTuning.py file. =========================#
 #================================================================================#
 
 print("Training")
 print(" ")
 
-booster = lgb.train(best_bayes_params,lgb_train,num_boost_round=500,valid_sets=[lgb_train,lgb_test],early_stopping_rounds=10,feature_name=[str(key) for key in UniqueWords])
+booster = lgb.train(best_bayes_params,lgb_train,num_boost_round=1,valid_sets=[lgb_train,lgb_test],early_stopping_rounds=10,feature_name=[str(key) for key in UniqueWords])
 end = time.time()
 TotalTime = end - start
 print('The baseline training time is {:.4f} seconds'.format(TotalTime))
@@ -195,18 +196,38 @@ print(" ")
 print("Predicting")
 print(" ")
 Predictions=booster.predict(test_features, num_iteration=booster.best_iteration)
-print(Predictions)
 print(" ")
 
+correct = 0
+#Calculate the number of times the model correctly predicted the test labels given the test features
+for i in range(0,Predictions.shape[0]):
+    maxProbability = np.max(Predictions[i,:])
+    for j in range(0,len(Predictions[i,:])):
+        if Predictions[i,j] == maxProbability:
+            WinePredictions = j
+            break
+    if WinePredictions == test_labels[i]:
+        correct += 1
 
-print("Plotting")
+TotalError = 1 - correct/len(test_labels)
 
+print('The best model from Bayes optimization scores {:.5f} error on the test set.'.format(TotalError))
 
 
 print('Plotting feature importances...')
 ax = lgb.plot_importance(booster, max_num_features=20)
-plt.show()
+#plt.show()
 
+
+#shap.initjs()
+
+# explain the model's predictions using SHAP values
+# (same syntax works for LightGBM, CatBoost, and scikit-learn models)
+explainer = shap.TreeExplainer(booster)
+shap_values = explainer.shap_values(test_features)
+
+# visualize the first prediction's explanation (use matplotlib=True to avoid Javascript)
+plt.show(shap.summary_plot(shap_values, test_features))
 
 # shap_values = shap.TreeExplainer(booster).shap_values(test_features)
 # shap.summary_plot(shap_values, test_features)

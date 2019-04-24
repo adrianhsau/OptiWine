@@ -114,7 +114,6 @@ FeaturesDescriptions = np.array(FeaturesMatrix)
 
 
 
-
 #================================================================================#
 #================================================================================#
 #=============================== Machine Learning ===============================#
@@ -134,6 +133,8 @@ print('Testing Features Shape:', test_features.shape)
 print('Testing Labels Shape:', test_labels.shape)
 print(" ")
 
+
+#Determine the number of times the model will cross-validate
 n_folds = 2
 
 # Create the dataset
@@ -178,34 +179,39 @@ def objective(params, n_folds = n_folds):
             'train_time': run_time, 'status': STATUS_OK}
 
 
+#This is where we determine the hyperparameters that will be used in our model. Our goal is to allow
+#TPE to choose the parameters and then do a number of evaluations for each set of spaces. We will then choose
+#the space that resulted in the lowest amount of error. Then we will you that space as the parameters for our
+#main boosting phase.
+
 space =  {
     'boosting_type': 'gbdt',
     'objective': 'multiclass',
     'num_class': len(UniqueVarieties),
     'metric': ['multi_error'],
-    "max_depth": hp.choice('max_depth',np.arange(5,20,dtype=int)),
-    "feature_fraction": hp.choice('feature_fraction',np.arange(0.1,0.7,dtype=float)),
-    "bagging_fraction": hp.choice('bagging_fraction',np.arange(0.1,0.7,dtype=float)),
-    "reg_alpha": hp.choice('reg_alpha',np.arange(0.0,0.7,dtype=float)),
-    "reg_lambda": hp.choice('reg_lambda',np.arange(0.0,0.7,dtype=float)),
-    "min_child_weight": 0,
-    'num_leaves': hp.choice('num_leaves',np.arange(1,150,dtype=int)),
+    "max_depth": 6,
+    #"feature_fraction": hp.choice('feature_fraction',np.arange(0.1,0.7,dtype=float)),
+    #"bagging_fraction": hp.choice('bagging_fraction',np.arange(0.1,0.7,dtype=float)),
+    #"reg_alpha": hp.choice('reg_alpha',np.arange(0.0,0.7,dtype=float)),
+    #"reg_lambda": hp.choice('reg_lambda',np.arange(0.0,0.7,dtype=float)),
+    #"min_child_weight": 0,
+    'num_leaves': hp.choice('num_leaves',np.arange(1,75,dtype=int)),
     'learning_rate': hp.loguniform('learning_rate', np.log(0.01), np.log(0.2)),
-    'subsample_for_bin': hp.choice('subsample_for_bin',np.arange(20000,300000,dtype=int)),
-    'min_child_samples': hp.choice('min_child_samples', np.arange(20,500,dtype=int)),
-    'colsample_bytree': hp.uniform('colsample_by_tree', 0.6, 1.0)
+    #'subsample_for_bin': hp.choice('subsample_for_bin',np.arange(20000,300000,dtype=int)),
+    #'min_child_samples': hp.choice('min_child_samples', np.arange(20,500,dtype=int)),
+    #'colsample_bytree': hp.uniform('colsample_by_tree', 0.6, 1.0)
                  }
 
-# File to save first results
+#Create a CSV file to save the results from each round
 out_file = 'gbm_trials.csv'
 of_connection = open(out_file, 'w')
 writer = csv.writer(of_connection)
 
-# Write the headers to the file
+#Write the columns of the csv
 writer.writerow(['loss', 'params', 'iteration', 'estimators', 'train_time'])
 of_connection.close()
 
-# Algorithm
+#The TPE.Suggest algorithm utilizes
 tpe_algorithm = tpe.suggest
 
 # Trials object to track progress
@@ -214,7 +220,8 @@ bayes_trials = Trials()
 global  iteration
 iteration = 0
 
-
+#The number of max evals determines the overall number of iterations the minimizer will perform. The number of
+#evals is also equal to the number of different spaces. Our goal is to find the best space.
 maxEvals = 10
 
 # Optimize

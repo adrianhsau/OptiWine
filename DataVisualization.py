@@ -33,30 +33,44 @@ Descriptions = DataDes['Description']
 
 
 
-wordcloudText = [""].append(descrip for descrip in Descriptions)
-print(wordcloudText)
-freq = nltk.FreqDist(wordcloudText)
-freq.plot(20, cumulative=False)
+wordcloudText = " "
+print("Combining reviews to create wordcloud")
+for row in Descriptions:
+	DesRow = row
+	wordcloudText += DesRow
 
-plt.figure(figsize=(15,10))
-freq(ascending=False).plot.bar()
-# plt.xticks(rotation=50)
-# plt.xlabel("Country of Origin")
-# plt.ylabel("Number of Wines")
+# Create stopword list:
+stopwords = set(STOPWORDS)
+stopwords.update(["drink", "now", "wine", "flavor", "flavors","xc","xa","xe"])
+
+# Generate a word cloud image
+print("Generating wordcloud")
+wordcloud = WordCloud(stopwords = stopwords,background_color="white").generate(wordcloudText)
+
+
+# Display the generated image:
+print("Plotting wordcloud")
+plt.imshow(wordcloud, interpolation='bilinear')
+plt.axis("off")
 plt.show()
 
 
+print("Loading Wine Bottle World Cloud")
+wine_mask = np.array(Image.open("wine_mask2.png"))
 
+# Create a word cloud image
+wc = WordCloud(background_color="white", max_words=1000, mask=wine_mask,
+               stopwords=stopwords, contour_width=3, contour_color='firebrick')
 
-# Create stopword list:
-#stopwords = set(STOPWORDS)
-#stopwords.update(["drink", "now", "wine", "flavor", "flavors"])
+# Generate a wordcloud
+print("Generating Cloud")
+wc.generate(wordcloudText)
 
-# Generate a word cloud image
-# wordcloud = WordCloud(background_color="white").generate(wordcloudText)
+# store to file
+wc.to_file("wineCloud.png")
 
-
-# # Display the generated image:
-# plt.imshow(wordcloud, interpolation='bilinear')
-# plt.axis("off")
-# plt.show()
+# show
+plt.figure(figsize=[20,10])
+plt.imshow(wc, interpolation='bilinear')
+plt.axis("off")
+plt.show() 
