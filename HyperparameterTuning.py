@@ -189,11 +189,11 @@ space =  {
     'objective': 'multiclass',
     'num_class': len(UniqueVarieties),
     'metric': ['multi_error'],
-    "max_depth": hp.choice('max_depth',np.arange(15,30,dtype=float)),
+    "max_depth": hp.choice('max_depth',np.arange(15,30,dtype=int)),
     "feature_fraction": hp.choice('feature_fraction',np.arange(0.1,0.7,dtype=float)),
     'num_leaves': hp.choice('num_leaves',np.arange(1,75,dtype=int)),
     'learning_rate': hp.loguniform('learning_rate', np.log(0.01), np.log(0.2)),
-    
+
                  }
 
 #Create a CSV file to save the results from each round
