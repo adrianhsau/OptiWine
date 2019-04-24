@@ -166,7 +166,7 @@ def objective(params, n_folds = n_folds):
     loss = bestScore
     
     # Boosting rounds that returned the highest cv score
-    n_estimators = int(np.argmin(cv_results['multi_error-mean']) + 5)
+    n_estimators = int(np.argmin(cv_results['multi_error-mean']) + 1)
 
     # Write to the csv file ('a' means append)
     of_connection = open(out_file, 'a')
@@ -189,17 +189,11 @@ space =  {
     'objective': 'multiclass',
     'num_class': len(UniqueVarieties),
     'metric': ['multi_error'],
-    "max_depth": 6,
-    #"feature_fraction": hp.choice('feature_fraction',np.arange(0.1,0.7,dtype=float)),
-    #"bagging_fraction": hp.choice('bagging_fraction',np.arange(0.1,0.7,dtype=float)),
-    #"reg_alpha": hp.choice('reg_alpha',np.arange(0.0,0.7,dtype=float)),
-    #"reg_lambda": hp.choice('reg_lambda',np.arange(0.0,0.7,dtype=float)),
-    #"min_child_weight": 0,
+    "max_depth": hp.choice('max_depth',np.arange(15,30,dtype=float)),
+    "feature_fraction": hp.choice('feature_fraction',np.arange(0.1,0.7,dtype=float)),
     'num_leaves': hp.choice('num_leaves',np.arange(1,75,dtype=int)),
     'learning_rate': hp.loguniform('learning_rate', np.log(0.01), np.log(0.2)),
-    #'subsample_for_bin': hp.choice('subsample_for_bin',np.arange(20000,300000,dtype=int)),
-    #'min_child_samples': hp.choice('min_child_samples', np.arange(20,500,dtype=int)),
-    #'colsample_bytree': hp.uniform('colsample_by_tree', 0.6, 1.0)
+    
                  }
 
 #Create a CSV file to save the results from each round
