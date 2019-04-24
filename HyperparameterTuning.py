@@ -166,7 +166,7 @@ def objective(params, n_folds = n_folds):
     loss = bestScore
     
     # Boosting rounds that returned the highest cv score
-    n_estimators = int(np.argmin(cv_results['multi_error-mean']) + 1)
+    n_estimators = int(np.argmin(cv_results['multi_error-mean']) + 5)
 
     # Write to the csv file ('a' means append)
     of_connection = open(out_file, 'a')
