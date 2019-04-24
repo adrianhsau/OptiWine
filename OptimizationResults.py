@@ -159,18 +159,18 @@ best_bayes_model.fit(train_features, train_labels)
 
 print("Predicting Model")
 # Evaluate on the testing data 
-preds = best_bayes_model.predict(test_features)
+Predictions = best_bayes_model.predict(test_features)
 
 
 correct = 0
 #Calculate the number of times the model correctly predicted the test labels given the test features
-for i in range(0,preds.shape[0]):
-    maxProbability = np.max(preds[i,:])
-    for j in range(0,len(preds[i,:])):
-        if preds[i,j] == maxProbability:
-            WinePredictions = j
+for i in range(0,Predictions.shape[0]):
+    maxProbability = np.max(Predictions[i,:])
+    for j in range(0,len(Predictions[i,:])):
+        if Predictions[i,j] == maxProbability:
+            WinePredictionss = j
             break
-    if WinePredictions == test_labels[i]:
+    if WinePredictionss == test_labels[i]:
         correct += 1
 
 TotalError = 1 - correct/len(test_labels)
