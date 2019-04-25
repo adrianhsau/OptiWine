@@ -131,7 +131,7 @@ print('Testing Features Shape:', test_features.shape)
 print('Testing Labels Shape:', test_labels.shape)
 
 print("Read in CSV")
-results = pd.read_csv('gbm_trials2.csv')
+results = pd.read_csv('gbm_trialsFinals.csv')
 
 # Sort with best scores on top and reset index for slicing
 results.sort_values('loss', ascending = True, inplace = True)

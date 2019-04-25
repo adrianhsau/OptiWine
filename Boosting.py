@@ -133,36 +133,36 @@ lgb_train = lgb.Dataset(train_features, label=train_labels,categorical_feature= 
 lgb_test = lgb.Dataset(test_features, test_labels,reference =lgb_train,categorical_feature= "auto")
 
 print("Read in hyperparameters from hypertuning ")
-# results = pd.read_csv('gbm_trials2.csv')
+results = pd.read_csv('gbm_trials2.csv')
 
-# # Sort with best scores on top and reset index for slicing
-# results.sort_values('loss', ascending = True, inplace = True)
-# results.reset_index(inplace = True, drop = True)
+# Sort with best scores on top and reset index for slicing
+results.sort_values('loss', ascending = True, inplace = True)
+results.reset_index(inplace = True, drop = True)
 
-# # Convert from a string to a dictionary
-# ast.literal_eval(results.loc[0, 'params'])
+# Convert from a string to a dictionary
+ast.literal_eval(results.loc[0, 'params'])
 
-# # Extract the ideal number of estimators and hyperparameters
-# best_bayes_estimators = int(results.loc[0, 'estimators'])
-# best_bayes_params = ast.literal_eval(results.loc[0, 'params']).copy()
+# Extract the ideal number of estimators and hyperparameters
+best_bayes_estimators = int(results.loc[0, 'estimators'])
+best_bayes_params = ast.literal_eval(results.loc[0, 'params']).copy()
 
 
-lgbm_params =  {
-    'task': 'train',
-    'boosting_type': 'gbdt',
-    'objective': 'multiclass',
-    'num_class': len(UniqueVarieties),
-    'metric': ['multi_error'],
-    "learning_rate": 0.05,
-     "num_leaves": 60,
-     "max_depth": 9,
-     "feature_fraction": 0.45,
-     "bagging_fraction": 0.3,
-     "reg_alpha": 0.15,
-     "reg_lambda": 0.15,
-#      "min_split_gain": 0,
-      "min_child_weight": 0,
-                }
+# lgbm_params =  {
+#     'task': 'train',
+#     'boosting_type': 'gbdt',
+#     'objective': 'multiclass',
+#     'num_class': len(UniqueVarieties),
+#     'metric': ['multi_error'],
+#     "learning_rate": 0.05,
+#      "num_leaves": 60,
+#      "max_depth": 9,
+#      "feature_fraction": 0.45,
+#      "bagging_fraction": 0.3,
+#      "reg_alpha": 0.15,
+#      "reg_lambda": 0.15,
+# #      "min_split_gain": 0,
+#       "min_child_weight": 0,
+#                 }
 
 
 best_bayes_params = lgbm_params
@@ -210,6 +210,10 @@ for i in range(0,Predictions.shape[0]):
         correct += 1
 
 TotalError = 1 - correct/len(test_labels)
+
+df = DataFrame(Predictions)
+
+df.to_csv("FINALPREDICTIONSBOOST.csv",encoding = Encoding,index=False)
 
 print('The best model from Bayes optimization scores {:.5f} error on the test set.'.format(TotalError))
 
