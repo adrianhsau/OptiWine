@@ -145,7 +145,7 @@ def objective(params, n_folds = n_folds):
     """Objective function for Gradient Boosting Machine Hyperparameter Optimization"""
     out_file = 'gbm_trials.csv'
 
-    # Keep track of evals
+    # Keep track of the number of evals
     global iteration
     
     iteration += 1
@@ -181,7 +181,7 @@ def objective(params, n_folds = n_folds):
 
 #This is where we determine the hyperparameters that will be used in our model. Our goal is to allow
 #TPE to choose the parameters and then do a number of evaluations for each set of spaces. We will then choose
-#the space that resulted in the lowest amount of error. Then we will you that space as the parameters for our
+#the space that resulted in the lowest amount of error. Then we will use that space as the parameters for our
 #main boosting phase.
 
 space =  {

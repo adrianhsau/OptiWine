@@ -128,7 +128,7 @@ rf = RandomForestClassifier(bootstrap=True, class_weight=None, criterion='gini',
             max_depth=None, max_features='auto', max_leaf_nodes=None,
             min_impurity_decrease=1e-07, min_samples_leaf=1,
             min_samples_split=2, min_weight_fraction_leaf=0.0,
-            n_estimators=250, n_jobs=2, oob_score=False, random_state=42,
+            n_estimators=500, n_jobs=2, oob_score=False, random_state=42,
             verbose=0, warm_start=False)
 
 print("Fitting")
