@@ -1,5 +1,7 @@
 # OptiWine
 
+0. Download ZIP, and unpack all files into the same folder. Unpack WineReviews.zip into the same folder and the python files. 
+
 1. Run PrimaryDataPreProcessing.py as-is
 
 2. Run RandomForest.py as a baseline 
