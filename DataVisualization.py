@@ -25,13 +25,9 @@ Descriptions = DataDes['Description']
 
 #================================================================================#
 #================================================================================#
-#============================ Data Visualization ================================#
-#== In order to properly use the random forest, we must recreate the inital =====#
-#=== descriptions of the wine, but now only with the words we care about ========#
+#=================================== Word Cloud =================================#
 #================================================================================#
 #================================================================================#
-
-
 
 wordcloudText = " "
 print("Combining reviews to create wordcloud")
@@ -74,3 +70,44 @@ plt.figure(figsize=[20,10])
 plt.imshow(wc, interpolation='bilinear')
 plt.axis("off")
 plt.show() 
+
+
+
+
+#================================================================================#
+#================================================================================#
+#=================================== Bar Chart ==================================#
+#================================================================================#
+#================================================================================#
+
+print("Read in hyperparameters from hypertuning ")
+results = pd.read_csv('gbm_trialsFINAL.csv')
+
+# Sort with best scores on top and reset index for slicing
+results.sort_values('loss', ascending = True, inplace = True)
+results.reset_index(inplace = True, drop = True)
+
+loss = results['loss']
+iteration = results['iteration']
+train_time = results['train_time']
+params = results['params']
+
+
+# Convert from a string to a dictionary
+plt.figure()
+plt.bar(iteration, loss*100, align='center', alpha=0.5)
+plt.xticks(iteration)
+plt.ylabel('Iteration Number')
+plt.ylabel('Percentage Loss')
+plt.title('Iteration Number vs Loss')
+plt.show()
+
+plt.figure()
+plt.bar(iteration, train_time/60, align='center', alpha=0.5)
+plt.xticks(iteration)
+plt.ylabel('Iteration Number')
+plt.ylabel('Train Time (minutes)')
+plt.title('Iteration Number vs Train Time')
+ 
+plt.show()
+

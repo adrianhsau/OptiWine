@@ -132,40 +132,22 @@ print('Testing Labels Shape:', test_labels.shape)
 lgb_train = lgb.Dataset(train_features, label=train_labels,categorical_feature= "auto")
 lgb_test = lgb.Dataset(test_features, test_labels,reference =lgb_train,categorical_feature= "auto")
 
-print("Read in hyperparameters from hypertuning ")
-results = pd.read_csv('gbm_trials2.csv')
+lgbm_params =  {
+    'task': 'train',
+    'boosting_type': 'gbdt',
+    'objective': 'multiclass',
+    'num_class': len(UniqueVarieties),
+    'metric': ['multi_error'],
+    "learning_rate": 0.05,
+    "num_leaves": 60,
+    "max_depth": 9,
+    "feature_fraction": 0.45,
+    "bagging_fraction": 0.3,
+    "reg_alpha": 0.15,
+    "reg_lambda": 0.15,
+    "min_child_weight": 0,
+                }
 
-# Sort with best scores on top and reset index for slicing
-results.sort_values('loss', ascending = True, inplace = True)
-results.reset_index(inplace = True, drop = True)
-
-# Convert from a string to a dictionary
-ast.literal_eval(results.loc[0, 'params'])
-
-# Extract the ideal number of estimators and hyperparameters
-best_bayes_estimators = int(results.loc[0, 'estimators'])
-best_bayes_params = ast.literal_eval(results.loc[0, 'params']).copy()
-
-
-# lgbm_params =  {
-#     'task': 'train',
-#     'boosting_type': 'gbdt',
-#     'objective': 'multiclass',
-#     'num_class': len(UniqueVarieties),
-#     'metric': ['multi_error'],
-#     "learning_rate": 0.05,
-#      "num_leaves": 60,
-#      "max_depth": 9,
-#      "feature_fraction": 0.45,
-#      "bagging_fraction": 0.3,
-#      "reg_alpha": 0.15,
-#      "reg_lambda": 0.15,
-# #      "min_split_gain": 0,
-#       "min_child_weight": 0,
-#                 }
-
-
-best_bayes_params = lgbm_params
 #================================================================================#
 #================================================================================#
 #=============================== Model Training =================================#
@@ -177,7 +159,7 @@ best_bayes_params = lgbm_params
 print("Training")
 print(" ")
 
-booster = lgb.train(best_bayes_params,lgb_train,num_boost_round=500,valid_sets=[lgb_train,lgb_test],early_stopping_rounds=10,feature_name=[str(key) for key in UniqueWords])
+booster = lgb.train(lgbm_params,lgb_train,num_boost_round=500,valid_sets=[lgb_train],early_stopping_rounds=10,feature_name=[str(key) for key in UniqueWords])
 end = time.time()
 TotalTime = end - start
 print('The baseline training time is {:.4f} seconds'.format(TotalTime))

@@ -21,7 +21,6 @@ import matplotlib.pyplot as plt
 import warnings
 import ast
 warnings.filterwarnings('ignore')
-#warnings.filterwarnings('Warnings')
 
 Encoding = 'utf-8'
 Data = pd.read_csv('FormattedData.csv', sep = ",",encoding=Encoding).sort_values('Variety')
@@ -144,7 +143,6 @@ ast.literal_eval(results.loc[0, 'params'])
 best_bayes_estimators = int(results.loc[0, 'estimators'])
 best_bayes_params = ast.literal_eval(results.loc[0, 'params']).copy()
 
-#print(best_bayes_params)
 
 del best_bayes_params['metric']
 
