@@ -11,3 +11,5 @@
 4. Run HyperParameterTuning.py for the optimizer to begin finding optimum hyperparameters. Note that more evaluations will give a better result, but will take longer. 
 
 5. Run OptimizationResults.py to run the optimized model on the test set. 
+
+6. Run DataVisualization to generate wordclouds, barcharts, and other visuals. 
