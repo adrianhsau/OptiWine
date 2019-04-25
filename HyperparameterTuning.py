@@ -154,7 +154,7 @@ def objective(params, n_folds = n_folds):
     start = time.time()
     
     # Perform n_folds cross validation
-    cv_results = lgb.cv(params, train_set, num_boost_round = 250, nfold = n_folds, 
+    cv_results = lgb.cv(params, train_set, num_boost_round = 300, nfold = n_folds, 
                         early_stopping_rounds = 10, metrics = 'multi_error', seed = 50)
     
     run_time = time.time() - start
@@ -165,8 +165,7 @@ def objective(params, n_folds = n_folds):
     # Loss must be minimized
     loss = bestScore
     
-    # Boosting rounds that returned the highest cv score
-    n_estimators = int(np.argmin(cv_results['multi_error-mean']) + 1)
+    n_estimators = 500
 
     # Write to the csv file ('a' means append)
     of_connection = open(out_file, 'a')
