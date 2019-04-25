@@ -1,2 +1,0 @@
-loss,params,iteration,estimators,train_time
-0.533063316022704,"{'bagging_fraction': 0.1, 'boosting_type': 'gbdt', 'colsample_bytree': 0.6834049676375196, 'feature_fraction': 0.1, 'learning_rate': 0.025571040437167434, 'max_depth': 15, 'metric': ('multi_error',), 'min_child_samples': 258, 'min_child_weight': 0, 'num_class': 707, 'num_leaves': 58, 'objective': 'multiclass', 'reg_alpha': 0.0, 'reg_lambda': 0.0, 'subsample_for_bin': 76586}",1,250,3714.395431995392
