@@ -1,6 +1,6 @@
 # OptiWine
 
-0. Download ZIP, and unpack all files into the same folder. Unpack WineReviews.zip into the same folder and the python files. 
+0. Download ZIP, and unpack all files into the same folder. Unpack FullWineList.zip into the same folder as the python files. 
 
 1. Run PrimaryDataPreProcessing.py as-is
 
